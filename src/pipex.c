@@ -1,6 +1,5 @@
 #include "pipex.h"
 #include "libft.h"
-#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -30,50 +29,16 @@ void	find_path(t_pipex *pipex, char **envp)
 	error("Allocating PATHs failed for some weird reason", true);
 }
 
-bool	open_pipe(int *fds)
-{
-	int	tmp;
-
-	if (pipe(fds) != 0)
-		return (false);
-	tmp = fds[0];
-	fds[0] = fds[1];
-	fds[1] = tmp;
-	return (true);
-}
-
-void	create_fds(t_pipex *pipex, int argc, char **argv)
-{
-	int	pipe_index;
-
-	pipex->fd_count = 2 * pipex->cmd_count;
-	pipex->fds = ft_calloc(pipex->fd_count, sizeof(int));
-	if (!pipex->fds)
-		error("Allocating file descriptor array failed", true);
-	pipex->fds[0] = open(argv[1], O_RDONLY);
-	if (pipex->fds[0] < 0)
-		error("Error opening infile", true);
-	pipex->fds[pipex->fd_count - 1] = open(
-			argv[argc - 1], O_CREAT | O_WRONLY | O_TRUNC, 00644);
-	if (pipex->fds[pipex->fd_count - 1] < 0)
-		error("Error opening outfile", true);
-	pipe_index = 1;
-	while (pipe_index < pipex->fd_count - 1)
-	{
-		if (!open_pipe(pipex->fds + pipe_index))
-		{
-			cleanup_fds(pipex);
-			error("Error opening pipe", true);
-		}
-		pipe_index += 2;
-	}
-}
-
 void	create_forks(t_pipex *pipex, char **argv, char **envp)
 {
 	int		i;
+	int		cmd_offset;
 	pid_t	pid;
 
+	if (pipex->here_doc)
+		cmd_offset = 3;
+	else
+		cmd_offset = 2;
 	i = 0;
 	while (i < pipex->cmd_count)
 	{
@@ -85,7 +50,7 @@ void	create_forks(t_pipex *pipex, char **argv, char **envp)
 			error("Forking failed!", true);
 		}
 		else if (pid == 0)
-			child(pipex, pipex->fds + i * 2, argv[i + 2], envp);
+			child(pipex, pipex->fds + i * 2, argv[i + cmd_offset], envp);
 		++i;
 	}
 }
@@ -97,11 +62,12 @@ int	main(int argc, char **argv, char **envp)
 
 	if (argc < 5)
 		error("Usage: ./pipex <infile> <cmd1> <cmd2> <cmdn>.. <outfile>", false);
-	pipex.cmd_count = argc - 3;
+	args_in(&pipex, argc, argv);
 	create_fds(&pipex, argc, argv);
 	find_path(&pipex, envp);
 	create_forks(&pipex, argv, envp);
 	close_pipes(&pipex);
 	waitpid(-1, &status, 0);
 	cleanup(&pipex, true);
+	cleanup_heredoc();
 }

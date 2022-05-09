@@ -40,3 +40,8 @@ void	cleanup_child(t_pipex *pipex, char **argv)
 	cleanup(pipex, false);
 	ft_free_mult((void **) argv);
 }
+
+void	cleanup_heredoc(void)
+{
+	unlink(HERE_DOC);
+}
