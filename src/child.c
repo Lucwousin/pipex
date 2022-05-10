@@ -69,7 +69,7 @@ void	child(t_pipex *pipex, int *fds, char *cmd, char **envp)
 		execve(cmd_path, argv, envp);
 	cleanup_child(pipex, argv);
 	if (!cmd_path)
-		error(ERROR_CMD_NF, false);
+		error_exit_code(ERROR_CMD_NF, false, EXIT_CODE_NOT_FOUND);
 	free(cmd_path);
 	error(ERROR_EXEC, true);
 }

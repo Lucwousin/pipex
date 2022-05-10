@@ -15,17 +15,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void	error_exit_code(char *msg, bool in_lib, int exit_code)
+{
+	if (in_lib)
+		perror(msg);
+	else
+		ft_putstr_fd(msg, STDERR_FILENO);
+	exit(exit_code);
+}
+
 /**
  * Print a message to stderr, with an error message if in_lib is true
  * Exit with EXIT_FAILURE
  */
 void	error(char *msg, bool in_lib)
 {
-	if (in_lib)
-		perror(msg);
-	else
-		ft_putstr_fd(msg, STDERR_FILENO);
-	exit(EXIT_FAILURE);
+	error_exit_code(msg, in_lib, EXIT_FAILURE);
 }
 
 /**

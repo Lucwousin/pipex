@@ -27,6 +27,7 @@
 # define ERROR_DUP2		"Redirecting file descriptors failed"
 # define ERROR_CMD_NF	"Command not found!"
 # define ERROR_EXEC		"Something went wrong during execve call"
+# define EXIT_CODE_NOT_FOUND	127
 
 typedef struct s_pipex {
 	int		*fds;
@@ -38,6 +39,7 @@ typedef struct s_pipex {
 }	t_pipex;
 
 void	error(char *msg, bool in_lib);
+void	error_exit_code(char *msg, bool in_lib, int exit_code);
 
 void	open_files(t_pipex *pipex, int argc, char **argv);
 void	open_pipes(t_pipex *pipex);

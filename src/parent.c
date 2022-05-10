@@ -54,6 +54,7 @@ int	wait_for_children(t_pipex *pipex)
 	int		last_command_status;
 	pid_t	pid;
 
+	last_command_status = -1;
 	while (true)
 	{
 		pid = wait(&status);
@@ -62,5 +63,7 @@ int	wait_for_children(t_pipex *pipex)
 		if (pid == pipex->children[pipex->cmd_count - 1])
 			last_command_status = status;
 	}
-	return (last_command_status);
+	if (WIFEXITED(last_command_status))
+		return (WEXITSTATUS(last_command_status));
+	return (0);
 }
