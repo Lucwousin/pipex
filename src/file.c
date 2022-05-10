@@ -23,7 +23,7 @@ static int	create_here_doc(const char *delimiter)
 	int		fd;
 	char	*line;
 
-	fd = open(HERE_DOC, O_CREAT | O_RDWR | O_TRUNC, 00644);
+	fd = open(HERE_DOC, O_CREAT | O_WRONLY | O_TRUNC, 00644);
 	if (fd < 0)
 		return (-1);
 	while (true)
@@ -36,6 +36,8 @@ static int	create_here_doc(const char *delimiter)
 		free(line);
 	}
 	free(line);
+	close(fd);
+	fd = open(HERE_DOC, O_RDONLY);
 	return (fd);
 }
 
