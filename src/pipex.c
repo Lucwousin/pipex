@@ -15,6 +15,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/**
+ * Print a message to stderr, with an error message if in_lib is true
+ * Exit with EXIT_FAILURE
+ */
 void	error(char *msg, bool in_lib)
 {
 	if (in_lib)
@@ -24,22 +28,13 @@ void	error(char *msg, bool in_lib)
 	exit(EXIT_FAILURE);
 }
 
-void	find_path(t_pipex *pipex, char **envp)
-{
-	char	**env_cpy;
-
-	env_cpy = envp;
-	while (*env_cpy && ft_strncmp("PATH=", *env_cpy, 5) != 0)
-		++env_cpy;
-	if (!*env_cpy)
-		error(ERROR_PATH_NF, false);
-	pipex->path = ft_split(*(env_cpy) + 5, ':');
-	if (pipex->path != NULL)
-		return ;
-	cleanup(pipex, false);
-	error(ERROR_PATH_MAL, true);
-}
-
+/**
+ * Initialize our program
+ *
+ * Finds the command count, and allocates 2 arrays
+ * One array is going to be for the childrens' PIDs
+ * The other is for all file descriptors we need
+ */
 static void	initialize_pipex(t_pipex *pipex, int argc, char **argv)
 {
 	if (ft_strncmp(argv[1], "here_doc", 9) != 0)
@@ -65,6 +60,30 @@ static void	initialize_pipex(t_pipex *pipex, int argc, char **argv)
 	error(ERROR_FD_MAL, true);
 }
 
+/**
+ * Find the PATH environment variable, and split it up into it's parts
+ *
+ * Because we initialized the FD and PID arrays already, free those if we error
+ */
+static void	find_path(t_pipex *pipex, char **envp)
+{
+	char	**env_cpy;
+
+	env_cpy = envp;
+	while (*env_cpy && ft_strncmp("PATH=", *env_cpy, 5) != 0)
+		++env_cpy;
+	if (!*env_cpy)
+	{
+		cleanup(pipex, false);
+		error(ERROR_PATH_NF, false);
+	}
+	pipex->path = ft_split(*(env_cpy) + 5, ':');
+	if (pipex->path != NULL)
+		return ;
+	cleanup(pipex, false);
+	error(ERROR_PATH_MAL, true);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	t_pipex	pipex;
@@ -80,6 +99,5 @@ int	main(int argc, char **argv, char **envp)
 	close_pipes(&pipex);
 	status = wait_for_children(&pipex);
 	cleanup(&pipex, true);
-	cleanup_heredoc();
 	exit(status);
 }

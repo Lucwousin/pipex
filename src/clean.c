@@ -22,7 +22,7 @@ void	close_pipes(t_pipex *pipex)
 		close(pipex->fds[i++]);
 }
 
-void	cleanup_fds(t_pipex *pipex)
+static void	cleanup_fds(t_pipex *pipex)
 {
 	int	i;
 
@@ -43,7 +43,7 @@ void	cleanup(t_pipex *pipex, bool close_files)
 	{
 		cleanup_fds(pipex);
 		if (pipex->here_doc)
-			cleanup_heredoc();
+			unlink(HERE_DOC);
 	}
 	free(pipex->children);
 	free(pipex->fds);
@@ -56,9 +56,4 @@ void	cleanup_child(t_pipex *pipex, char **argv)
 	cleanup(pipex, false);
 	if (argv)
 		ft_free_mult((void **) argv);
-}
-
-void	cleanup_heredoc(void)
-{
-	unlink(HERE_DOC);
 }

@@ -15,18 +15,9 @@
 #include "get_next_line.h"
 #include <fcntl.h>
 
-static bool	open_pipe(int *fds)
-{
-	int	tmp;
-
-	if (pipe(fds) != 0)
-		return (false);
-	tmp = fds[0];
-	fds[0] = fds[1];
-	fds[1] = tmp;
-	return (true);
-}
-
+/**
+ * Create a temporary file, and read stdin into it, up to the delimiter
+ */
 static int	create_here_doc(const char *delimiter)
 {
 	int		fd;
@@ -34,7 +25,7 @@ static int	create_here_doc(const char *delimiter)
 
 	fd = open(HERE_DOC, O_CREAT | O_RDWR | O_TRUNC, 00644);
 	if (fd < 0)
-		error(ERROR_HERE_DOC, true);
+		return (-1);
 	while (true)
 	{
 		write(STDOUT_FILENO, "> ", 2);
@@ -48,6 +39,11 @@ static int	create_here_doc(const char *delimiter)
 	return (fd);
 }
 
+/**
+ * Opens the in- and output files.
+ *
+ * If we're dealing with a heredoc, read stdin into it.
+ */
 void	open_files(t_pipex *pipex, int argc, char **argv)
 {
 	int	out_flags;
@@ -70,6 +66,25 @@ void	open_files(t_pipex *pipex, int argc, char **argv)
 	}
 }
 
+/**
+ * Open a pipe.
+ * After opening, swap it around so the fds are ordered in - out - in - out...
+ */
+static bool	open_pipe(int *fds)
+{
+	int	tmp;
+
+	if (pipe(fds) != 0)
+		return (false);
+	tmp = fds[0];
+	fds[0] = fds[1];
+	fds[1] = tmp;
+	return (true);
+}
+
+/**
+ * Open enough pipes for all commands
+ */
 void	open_pipes(t_pipex *pipex)
 {
 	int	pipe_index;

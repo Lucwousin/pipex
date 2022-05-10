@@ -22,11 +22,9 @@
 # define ERROR_PATH_NF	"No PATH environment variable was found"
 # define ERROR_PATH_MAL	"Allocating PATHs failed for some weird reason"
 # define ERROR_FILES	"Error opening files"
-# define ERROR_HERE_DOC	"Failed to open/create here_doc"
 # define ERROR_PIPE		"Error opening pipe"
 # define ERROR_FORK		"Forking failed!"
 # define ERROR_DUP2		"Redirecting file descriptors failed"
-# define ERROR_CMD_MAL	"Allocating command failed"
 # define ERROR_CMD_NF	"Command not found!"
 # define ERROR_EXEC		"Something went wrong during execve call"
 
@@ -40,18 +38,16 @@ typedef struct s_pipex {
 }	t_pipex;
 
 void	error(char *msg, bool in_lib);
-void	child(t_pipex *pipex, int *fds, char *cmd, char **envp);
 
 void	open_files(t_pipex *pipex, int argc, char **argv);
 void	open_pipes(t_pipex *pipex);
-
 void	create_forks(t_pipex *pipex, char **argv, char **envp);
 int		wait_for_children(t_pipex *pipex);
 
-void	close_pipes(t_pipex *pipex);
-void	cleanup_heredoc(void);
-void	cleanup_fds(t_pipex *pipex);
+void	child(t_pipex *pipex, int *fds, char *cmd, char **envp);
+
 void	cleanup(t_pipex *pipex, bool close_files);
 void	cleanup_child(t_pipex *pipex, char **argv);
+void	close_pipes(t_pipex *pipex);
 
 #endif

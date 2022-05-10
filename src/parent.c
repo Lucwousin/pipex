@@ -13,6 +13,11 @@
 #include "pipex.h"
 #include <sys/wait.h>
 
+/**
+ * Fork for all the sub-processes we need
+ *
+ * Save the PID in an array so we can keep track of the last one's return value
+ */
 void	create_forks(t_pipex *pipex, char **argv, char **envp)
 {
 	int		i;
@@ -40,6 +45,9 @@ void	create_forks(t_pipex *pipex, char **argv, char **envp)
 	}
 }
 
+/**
+ * Wait for all subprocesses. Return the exit code of the last command
+ */
 int	wait_for_children(t_pipex *pipex)
 {
 	int		status;

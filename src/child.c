@@ -13,18 +13,21 @@
 #include "pipex.h"
 #include "libft.h"
 
+/**
+ * Try to find an executable somewhere on the PATH
+ */
 static char	*find_executable(char *cmd, char **path)
 {
 	char	*command;
 
 	cmd = ft_strjoin("/", cmd);
 	if (!cmd)
-		error(ERROR_CMD_MAL, true);
+		return (NULL);
 	command = NULL;
 	while (*path)
 	{
 		command = ft_strjoin(*path, cmd);
-		if (access(command, X_OK) == 0)
+		if (command == NULL || access(command, X_OK) == 0)
 			break ;
 		free(command);
 		command = NULL;
@@ -34,6 +37,15 @@ static char	*find_executable(char *cmd, char **path)
 	return (command);
 }
 
+/**
+ * Subprocess!
+ *
+ * First, redirect stdin/stdout to the in- and output file descriptors
+ * Second, close all pipes
+ * Third, find the correct executable
+ * Fourth, execute the executable
+ * If anything went wrong, clean up!
+ */
 void	child(t_pipex *pipex, int *fds, char *cmd, char **envp)
 {
 	char	*cmd_path;
