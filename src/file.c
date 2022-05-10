@@ -15,61 +15,14 @@ static bool	open_pipe(int *fds)
 	return (true);
 }
 
-static void	open_files(t_pipex *pipex, int argc, char **argv)
-{
-	int	out_flags;
-
-	if (!pipex->here_doc)
-	{
-		out_flags =  O_CREAT | O_WRONLY | O_TRUNC;
-		pipex->fds[0] = open(argv[1], O_RDONLY);
-		if (pipex->fds[0] < 0)
-			error("Error opening infile", true);
-	}
-	else
-	{
-		out_flags = O_CREAT | O_WRONLY | O_APPEND;
-		pipex->fds[0] = open(HERE_DOC, O_RDONLY);
-		if (pipex->fds[0] < 0)
-		{
-			cleanup_heredoc();
-			error("Error opening infile", true);
-		}
-	}
-	pipex->fds[pipex->fd_count - 1] = open(argv[argc - 1], out_flags, 00644);
-	if (pipex->fds[pipex->fd_count - 1] < 0)
-		error("Error opening outfile", true);
-}
-
-void	create_fds(t_pipex *pipex, int argc, char **argv)
-{
-	int	pipe_index;
-
-	pipex->fd_count = 2 * pipex->cmd_count;
-	pipex->fds = ft_calloc(pipex->fd_count, sizeof(int));
-	if (!pipex->fds)
-		error("Allocating file descriptor array failed", true);
-	open_files(pipex, argc, argv);
-	pipe_index = 1;
-	while (pipe_index < pipex->fd_count - 1)
-	{
-		if (!open_pipe(pipex->fds + pipe_index))
-		{
-			cleanup_fds(pipex);
-			error("Error opening pipe", true);
-		}
-		pipe_index += 2;
-	}
-}
-
-static void	read_stdin(const char *delimiter)
+static int	create_here_doc(const char *delimiter)
 {
 	int		fd;
 	char	*line;
 
-	fd = open(HERE_DOC, O_CREAT | O_WRONLY | O_TRUNC, 00644);
+	fd = open(HERE_DOC, O_CREAT | O_RDWR | O_TRUNC, 00644);
 	if (fd < 0)
-		error("Failed to open/create here_doc", true);
+		error(ERROR_HERE_DOC, true);
 	while (true)
 	{
 		write(STDOUT_FILENO, "> ", 2);
@@ -80,22 +33,43 @@ static void	read_stdin(const char *delimiter)
 		free(line);
 	}
 	free(line);
-	close(fd);
+	return (fd);
 }
 
-void	args_in(t_pipex *pipex, int argc, char **argv)
+void	open_files(t_pipex *pipex, int argc, char **argv)
 {
-	if (ft_strncmp(argv[1], "here_doc", 9) != 0)
+	int	out_flags;
+
+	if (!pipex->here_doc)
 	{
-		pipex->cmd_count = argc - 3;
+		out_flags = O_CREAT | O_WRONLY | O_TRUNC;
+		pipex->fds[0] = open(argv[1], O_RDONLY);
 	}
 	else
 	{
-		pipex->cmd_count = argc - 4;
-		pipex->here_doc = true;
+		out_flags = O_CREAT | O_WRONLY | O_APPEND;
+		pipex->fds[0] = create_here_doc(argv[2]);
 	}
-	if (pipex->cmd_count < 2)
-		error("Not enough commands!", false);
-	if (pipex->here_doc)
-		read_stdin(argv[2]);
+	pipex->fds[pipex->fd_count - 1] = open(argv[argc - 1], out_flags, 00644);
+	if (pipex->fds[0] < 0 || pipex->fds[pipex->fd_count - 1] < 0)
+	{
+		cleanup(pipex, true);
+		error(ERROR_FILES, true);
+	}
+}
+
+void	open_pipes(t_pipex *pipex)
+{
+	int	pipe_index;
+
+	pipe_index = 1;
+	while (pipe_index < pipex->fd_count - 1)
+	{
+		if (!open_pipe(pipex->fds + pipe_index))
+		{
+			cleanup(pipex, true);
+			error(ERROR_PIPE, true);
+		}
+		pipe_index += 2;
+	}
 }

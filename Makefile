@@ -7,7 +7,8 @@ INC_DIR = include/
 SRCS = pipex.c\
 	   child.c\
 	   clean.c\
-	   file.c
+	   file.c\
+	   parent.c
 
 OBJS = $(SRCS:.c=.o)
 OBJS_PREFIXED = $(addprefix $(OBJ_DIR), $(OBJS))

@@ -2,12 +2,27 @@
 # define PIPEX_H
 # include <unistd.h>
 # include <stdbool.h>
-# define HERE_DOC ".pipex_here_doc"
+# define HERE_DOC		".pipex_here_doc"
+# define ERROR_USAGE	"Usage: ./pipex <in> <cmd1> <cmd2> <cmdn>.. <out>"
+# define ERROR_COMMANDS	"Not enough commands!"
+# define ERROR_PID_MAL	"Failed to allocate pid array"
+# define ERROR_FD_MAL	"Allocating file descriptor array failed"
+# define ERROR_PATH_NF	"No PATH environment variable was found"
+# define ERROR_PATH_MAL	"Allocating PATHs failed for some weird reason"
+# define ERROR_FILES	"Error opening files"
+# define ERROR_HERE_DOC	"Failed to open/create here_doc"
+# define ERROR_PIPE		"Error opening pipe"
+# define ERROR_FORK		"Forking failed!"
+# define ERROR_DUP2		"Redirecting file descriptors failed"
+# define ERROR_CMD_MAL	"Allocating command failed"
+# define ERROR_CMD_NF	"Command not found!"
+# define ERROR_EXEC		"Something went wrong during execve call"
 
 typedef struct s_pipex {
 	int		*fds;
 	int		fd_count;
 	int		cmd_count;
+	pid_t	*children;
 	char	**path;
 	bool	here_doc;
 }	t_pipex;
@@ -15,8 +30,11 @@ typedef struct s_pipex {
 void	error(char *msg, bool in_lib);
 void	child(t_pipex *pipex, int *fds, char *cmd, char **envp);
 
-void	args_in(t_pipex *pipex, int argc, char **argv);
-void	create_fds(t_pipex *pipex, int argc, char **argv);
+void	open_files(t_pipex *pipex, int argc, char **argv);
+void	open_pipes(t_pipex *pipex);
+
+void	create_forks(t_pipex *pipex, char **argv, char **envp);
+int		wait_for_children(t_pipex *pipex);
 
 void	close_pipes(t_pipex *pipex);
 void	cleanup_heredoc(void);

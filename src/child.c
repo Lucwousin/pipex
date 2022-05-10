@@ -7,7 +7,7 @@ static char	*find_executable(char *cmd, char **path)
 
 	cmd = ft_strjoin("/", cmd);
 	if (!cmd)
-		error("Allocating command failed", true);
+		error(ERROR_CMD_MAL, true);
 	command = NULL;
 	while (*path)
 	{
@@ -26,19 +26,26 @@ void	child(t_pipex *pipex, int *fds, char *cmd, char **envp)
 {
 	char	*cmd_path;
 	char	**argv;
+	bool	dup_failed;
 
-	if (dup2(fds[0], STDIN_FILENO) < 0)
-		error("Duplicating file descriptor failed", true);
-	if (dup2(fds[1], STDOUT_FILENO) < 0)
-		error("Duplicating file descriptor failed", true);
+	dup_failed = false;
+	dup_failed |= dup2(fds[0], STDIN_FILENO) < 0;
+	dup_failed |= dup2(fds[1], STDOUT_FILENO) < 0;
 	close_pipes(pipex);
+	if (dup_failed)
+	{
+		cleanup(pipex, false);
+		error(ERROR_DUP2, true);
+	}
+	cmd_path = NULL;
 	argv = ft_split(cmd, ' ');
-	cmd_path = find_executable(argv[0], pipex->path);
+	if (argv)
+		cmd_path = find_executable(argv[0], pipex->path);
 	if (cmd_path)
 		execve(cmd_path, argv, envp);
 	cleanup_child(pipex, argv);
 	if (!cmd_path)
-		error("Command not found!", false);
+		error(ERROR_CMD_NF, false);
 	free(cmd_path);
-	error("Something went wrong during execve call", true);
+	error(ERROR_EXEC, true);
 }

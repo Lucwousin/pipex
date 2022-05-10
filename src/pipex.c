@@ -2,7 +2,6 @@
 #include "libft.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/wait.h>
 
 void	error(char *msg, bool in_lib)
 {
@@ -21,38 +20,37 @@ void	find_path(t_pipex *pipex, char **envp)
 	while (*env_cpy && ft_strncmp("PATH=", *env_cpy, 5) != 0)
 		++env_cpy;
 	if (!*env_cpy)
-		error("No PATH environment variable was found", false);
+		error(ERROR_PATH_NF, false);
 	pipex->path = ft_split(*(env_cpy) + 5, ':');
 	if (pipex->path != NULL)
 		return ;
-	cleanup_fds(pipex);
-	error("Allocating PATHs failed for some weird reason", true);
+	cleanup(pipex, false);
+	error(ERROR_PATH_MAL, true);
 }
 
-void	create_forks(t_pipex *pipex, char **argv, char **envp)
+static void	initialize_pipex(t_pipex *pipex, int argc, char **argv)
 {
-	int		i;
-	int		cmd_offset;
-	pid_t	pid;
-
-	if (pipex->here_doc)
-		cmd_offset = 3;
-	else
-		cmd_offset = 2;
-	i = 0;
-	while (i < pipex->cmd_count)
+	if (ft_strncmp(argv[1], "here_doc", 9) != 0)
 	{
-		pid = fork();
-		if (pid == -1)
-		{
-			cleanup_fds(pipex);
-			ft_free_mult((void **) pipex->path);
-			error("Forking failed!", true);
-		}
-		else if (pid == 0)
-			child(pipex, pipex->fds + i * 2, argv[i + cmd_offset], envp);
-		++i;
+		pipex->cmd_count = argc - 3;
+		pipex->here_doc = false;
 	}
+	else
+	{
+		pipex->cmd_count = argc - 4;
+		pipex->here_doc = true;
+	}
+	if (pipex->cmd_count < 2)
+		error(ERROR_COMMANDS, false);
+	pipex->children = ft_calloc(pipex->cmd_count, sizeof(pid_t));
+	if (!pipex->children)
+		error(ERROR_PID_MAL, true);
+	pipex->fd_count = 2 * pipex->cmd_count;
+	pipex->fds = ft_calloc(pipex->fd_count, sizeof(int));
+	if (pipex->fds)
+		return ;
+	free(pipex->children);
+	error(ERROR_FD_MAL, true);
 }
 
 int	main(int argc, char **argv, char **envp)
@@ -61,13 +59,15 @@ int	main(int argc, char **argv, char **envp)
 	int		status;
 
 	if (argc < 5)
-		error("Usage: ./pipex <infile> <cmd1> <cmd2> <cmdn>.. <outfile>", false);
-	args_in(&pipex, argc, argv);
-	create_fds(&pipex, argc, argv);
+		error(ERROR_USAGE, false);
+	initialize_pipex(&pipex, argc, argv);
 	find_path(&pipex, envp);
+	open_files(&pipex, argc, argv);
+	open_pipes(&pipex);
 	create_forks(&pipex, argv, envp);
 	close_pipes(&pipex);
-	waitpid(-1, &status, 0);
+	status = wait_for_children(&pipex);
 	cleanup(&pipex, true);
 	cleanup_heredoc();
+	exit(status);
 }
