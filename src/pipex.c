@@ -20,7 +20,7 @@ void	error_exit_code(char *msg, bool in_lib, int exit_code)
 	if (in_lib)
 		perror(msg);
 	else
-		ft_putstr_fd(msg, STDERR_FILENO);
+		ft_putendl_fd(msg, STDERR_FILENO);
 	exit(exit_code);
 }
 
