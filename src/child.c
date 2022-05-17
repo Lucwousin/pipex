@@ -20,6 +20,8 @@ static char	*find_executable(char *cmd, char **path)
 {
 	char	*command;
 
+	if (access(cmd, X_OK) == 0)
+		return (ft_strdup(cmd));
 	cmd = ft_strjoin("/", cmd);
 	if (!cmd)
 		return (NULL);
