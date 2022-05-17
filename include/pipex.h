@@ -17,7 +17,6 @@
 # define HERE_DOC		".pipex_here_doc"
 # define ERROR_USAGE	"Usage: ./pipex <in> <cmd1> <cmd2> <cmdn>.. <out>"
 # define ERROR_COMMANDS	"Not enough commands!"
-# define ERROR_PID_MAL	"Failed to allocate pid array"
 # define ERROR_FD_MAL	"Allocating file descriptor array failed"
 # define ERROR_PATH_NF	"No PATH environment variable was found"
 # define ERROR_PATH_MAL	"Allocating PATHs failed for some weird reason"
