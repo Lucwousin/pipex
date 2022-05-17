@@ -54,21 +54,17 @@ static void	initialize_pipex(t_pipex *pipex, int argc, char **argv)
 	}
 	if (pipex->cmd_count < 2)
 		error(ERROR_COMMANDS, false);
-	pipex->children = ft_calloc(pipex->cmd_count, sizeof(pid_t));
-	if (!pipex->children)
-		error(ERROR_PID_MAL, true);
 	pipex->fd_count = 2 * pipex->cmd_count;
 	pipex->fds = ft_calloc(pipex->fd_count, sizeof(int));
 	if (pipex->fds)
 		return ;
-	free(pipex->children);
 	error(ERROR_FD_MAL, true);
 }
 
 /**
  * Find the PATH environment variable, and split it up into it's parts
  *
- * Because we initialized the FD and PID arrays already, free those if we error
+ * Because we allocated the FD array already, free those if we error
  */
 static void	find_path(t_pipex *pipex, char **envp)
 {

@@ -45,7 +45,6 @@ void	cleanup(t_pipex *pipex, bool close_files)
 		if (pipex->here_doc)
 			unlink(HERE_DOC);
 	}
-	free(pipex->children);
 	free(pipex->fds);
 	if (pipex->path)
 		ft_free_mult((void **) pipex->path);

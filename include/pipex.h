@@ -33,7 +33,7 @@ typedef struct s_pipex {
 	int		*fds;
 	int		fd_count;
 	int		cmd_count;
-	pid_t	*children;
+	pid_t	last_cmd_pid;
 	char	**path;
 	bool	here_doc;
 }	t_pipex;

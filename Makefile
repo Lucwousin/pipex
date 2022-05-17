@@ -41,11 +41,11 @@ libft:
 $(OBJ_DIR)%.o : $(SRC_DIR)%.c $(INC_DIR)pipex.h
 	@mkdir -p $(OBJ_DIR)
 	@echo "Compiling: $<"
-	@$(CC) -g $(CFLAGS) -I $(INC_DIR) $(LIBFT_INC) -c -o $@ $<
+	@$(CC) $(CFLAGS) -I $(INC_DIR) $(LIBFT_INC) -c -o $@ $<
 
 $(NAME): $(OBJS_PREFIXED)
 	@echo "Compiling main executable"
-	@$(CC) -g $(CFLAGS) $(OBJS_PREFIXED) $(LIBFT_LIB) -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJS_PREFIXED) $(LIBFT_LIB) -o $(NAME)
 
 clean:
 	@rm -rf $(OBJ_DIR)
@@ -57,6 +57,8 @@ fclean: clean
 	@echo "Done cleaning executable $(CURDIR)/$(NAME)"
 	@make -C $(LIBFT) fclean
 
+bonus: all
+
 re: fclean all
 
-.PHONY: all clean fclean re libft
+.PHONY: all bonus clean fclean re libft

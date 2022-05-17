@@ -39,8 +39,8 @@ void	create_forks(t_pipex *pipex, char **argv, char **envp)
 		}
 		else if (pid == 0)
 			child(pipex, pipex->fds + i * 2, argv[i + cmd_offset], envp);
-		else
-			pipex->children[i] = pid;
+		else if (i == pipex->cmd_count - 1)
+			pipex->last_cmd_pid = pid;
 		++i;
 	}
 }
@@ -60,7 +60,7 @@ int	wait_for_children(t_pipex *pipex)
 		pid = wait(&status);
 		if (pid < 0)
 			break ;
-		if (pid == pipex->children[pipex->cmd_count - 1])
+		if (pid == pipex->last_cmd_pid)
 			last_command_status = status;
 	}
 	if (WIFEXITED(last_command_status))
